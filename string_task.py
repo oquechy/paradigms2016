@@ -15,16 +15,8 @@ def verbing(s):
 
 
 def not_bad(s):
-    start = end = '@'
-    n = len(s)
-    i = 0
-    while i < n - 2:
-        cur = s[i:i + 3]
-        if start == '@' and cur == 'not':
-            start = i
-        if end == '@' and cur == 'bad':
-            end = i + 3
-        i += 1
+    start = s.find('not')
+    end = s.find('bad') + 3
     if end > start:
         l = list(s)
         l[start:end] = list('good')
@@ -38,7 +30,7 @@ def front_back(a, b):
     return a[:la] + b[:lb] + a[la:] + b[lb:]
 
 
-#if __name__ == "__main__":
+if __name__ == "__main__":
 #   print(verbing('sa'), verbing('saa'), verbing('sing'))
-#    print(not_bad('sanotbad'), not_bad('saanotyybad'), not_bad('sibadngnotfghj'), not_bad('snotibadngnotfghjbad'))
+    print(not_bad('sanotbad'), not_bad('saanotyybad'), not_bad('sibadngnotfghj'), not_bad('snotibadngnotfghjbad'))
 #   print(front_back('abcd', 'xy'), front_back('saa', ''), front_back('singe', 'afo'))

@@ -25,14 +25,9 @@ def linear_merge(lst1, lst2):
         else:
             ans.append(lst2[i2])
             i2 += 1
-    while i1 < n1:
-        ans.append(lst1[i1])
-        i1 += 1
-    while i2 < n2:
-        ans.append(lst2[i2])
-        i2 += 1
+    ans.extend(lst1[i1:])
+    ans.extend(lst2[i2:])
     return ans
 
-
-
-
+if __name__ == "__main__":
+    print(linear_merge([1,4,5,6,9], [2,3,3,3]))
