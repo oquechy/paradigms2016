@@ -36,8 +36,9 @@ import sys
 
 def readf(f):
     d = dict()
-    f = open(f, 'r').read()
-    w = f.split()
+    f = open(f, 'r')
+    w = f.read().split()
+    f.close()
     for word in w:
         word = word.lower()
         if word in d.keys():
@@ -57,7 +58,7 @@ def print_top(f):
     d = readf(f)
     d = sorted(zip(d.values(), d.keys()))
     n = len(d)
-    for cnt, word in d[:max(-n - 1, -21):-1]:
+    for cnt, word in d[:-21:-1]:
         print(word, cnt)
 
 
