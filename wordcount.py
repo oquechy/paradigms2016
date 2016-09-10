@@ -45,9 +45,7 @@ import sys
 def readf(f):
     d = dict()
     f = open(f, 'r').read()
-    print(f)
     w = f.split()
-    print(w)
     for word in w:
         word = word.lower()
         if word in d.keys():
@@ -56,27 +54,19 @@ def readf(f):
             d[word] = 1
     return d
 
-'''def read_words(filename):
-    words = []
-    with open(filename, "r") as f:
-        for line in f:
-            words.extend(line.split())
-    return words
-'''
 
 def print_words(f):
     d = readf(f)
-    print(d)
-    for word, cnt in sorted(d):
+    for word, cnt in sorted(d.items()):
         print(word, cnt)
 
 
 def print_top(f):
     d = readf(f)
-    d = dict(zip(d.values(), d.keys()))
+    d = zip(d.values(), d.keys())
     i = 0
-    for (cnt, word) in d:
-        print(cnt, word)
+    for (cnt, word) in reversed(sorted(d)):
+        print(word, cnt)
         i += 1
         if i == 30:
             break
@@ -88,7 +78,6 @@ def main():
 
     option = sys.argv[1]
     filename = sys.argv[2]
-    print(option, filename)
     if option == '--count':
         print_words(filename)
     elif option == '--topcount':
