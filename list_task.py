@@ -31,3 +31,4 @@ def linear_merge(lst1, lst2):
 
 if __name__ == "__main__":
     print(linear_merge([1,4,5,6,9], [2,3,3,3]))
+

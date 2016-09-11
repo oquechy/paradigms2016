@@ -14,7 +14,7 @@ def verbing(s):
 def not_bad(s):
     start = s.find('not')
     end = s.find('bad') + 3
-    if end > start and end != -1 and start != -1:
+    if end > start and end != 2 and start != -1:
         l = list(s)
         l[start:end] = list('good')
         s = ''.join(l)
