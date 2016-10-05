@@ -16,7 +16,7 @@ def strassen(a, b, n):
     p5 = strassen(a11 + a12, b22, m)
     p6 = strassen(a21 - a11, b11 + b12, m)
     p7 = strassen(a12 - a22, b21 + b22, m)
-    c = np.vstack((np.hstack((p1 + p4 - p5 + p7, p3 + p5)), np.hstack((p2 + p4,p1 + p3 - p2 + p6))))
+    c = np.vstack((np.hstack((p1 + p4 - p5 + p7, p3 + p5)), np.hstack((p2 + p4, p1 + p3 - p2 + p6))))
     return c
 
 
