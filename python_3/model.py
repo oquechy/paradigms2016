@@ -183,6 +183,7 @@ class BinaryOperation:
         self.l = lhs
         self.op = op
         self.r = rhs
+        assert op in ['+', '-', '*', '/', '%', '==', '!=', '<', '>', '<=', '>=', '&&', '||']
 
     def evaluate(self, scope):
         if self.op == '&&':
@@ -192,7 +193,7 @@ class BinaryOperation:
         lev = str(self.l.evaluate(scope).value)
         rev = str(self.r.evaluate(scope).value)
         res = eval(lev + ' ' + self.op + ' ' + rev)
-        #print('BinOP', 'l =', lev, self.op, 'r =', rev, 'res =', res)
+        # print('BinOP', 'l =', lev, self.op, 'r =', rev, 'res =', res)
         return Number(res)
 
 
@@ -239,8 +240,8 @@ def my_tests():
                                                                         Reference('me')),
                                                         [Print(Number(1))],
                                                         [Print(Number(0))])])
-    #print('@', p['Number(0)'].value)
-    #print(Print(Reference('Number(0)')).evaluate(p), Print(Reference('Number(0)')).evaluate(p).value)
+    # print('@', p['Number(0)'].value)
+    # print(Print(Reference('Number(0)')).evaluate(p), Print(Reference('Number(0)')).evaluate(p).value)
     assert BinaryOperation(Print(Reference('Number(0)')), '==', Number(-1)).evaluate(p)
     s = Scope(p)
     s['foo'] = Function([], [Reference('foo')])
@@ -255,11 +256,10 @@ def my_tests():
     s['tru'] = Number(1)
     s['flse'] = Number(0)
     assert s['Number(0)'] == s['foo']
-    #print('start')
+    # print('start')
     Print(FunctionCall(FunctionDefinition('-', s['!!!']), [])).evaluate(s)
     Print(FunctionCall(FunctionDefinition('ty', s['func']),
                        [Number(1), FunctionCall(FunctionDefinition('-', s['!!!']), [])])).evaluate(s)
-
 
     Print(BinaryOperation(FunctionCall(FunctionDefinition('ty', s['func']),
                                        [Number(1),
