@@ -4,6 +4,8 @@
 # Рѣализуйте мѣтоды с raise NotImplementedError
 
 from collections import defaultdict
+import printer
+import folder
 
 
 class Scope:
@@ -39,6 +41,9 @@ class Number:
     def evaluate(self, scope):
         return self
 
+    def accept(self, visitor):
+        return visitor.visitNumber(self)
+
 
 class Function:
 
@@ -68,6 +73,9 @@ class Function:
         #print('Funcn', res.value)
         return res
 
+    def accept(self, visitor):
+        return visitor.visitFunction(self)
+
 
 class FunctionDefinition:
 
@@ -84,6 +92,9 @@ class FunctionDefinition:
     def evaluate(self, scope):
         scope[self.name] = self.function
         return self.function
+
+    def accept(self, visitor):
+        return visitor.visitFunDefinition(self)
 
 
 class Conditional:
@@ -104,6 +115,9 @@ class Conditional:
         #print('Cond', self.cond.evaluate(scope).value, 'res', res.value)
         return res
 
+    def accept(self, visitor):
+        return visitor.visitConditional(self)
+
 
 class Print:
 
@@ -116,6 +130,9 @@ class Print:
         n = self.expr.evaluate(scope)
         print(n.value)
         return n
+
+    def accept(self, visitor):
+        return visitor.visitPrint(self)
 
 
 class Read:
@@ -132,6 +149,9 @@ class Read:
     def evaluate(self, scope):
         scope[self.name] = Number(int(input()))
         return scope[self.name]
+
+    def accept(self, visitor):
+        return visitor.visitRead(self)
 
 
 class FunctionCall:
@@ -157,6 +177,9 @@ class FunctionCall:
         #print('FunCall', self.fun_expr.name, res.value)
         return res
 
+    def accept(self, visitor):
+        return visitor.visitFunCall(self)
+
 
 class Reference:
 
@@ -169,6 +192,9 @@ class Reference:
     def evaluate(self, scope):
         #print('Refec', self.name, scope[self.name].value)
         return scope[self.name]
+
+    def accept(self, visitor):
+        return visitor.visitReference(self)
 
 
 class BinaryOperation:
@@ -196,6 +222,9 @@ class BinaryOperation:
         # print('BinOP', 'l =', lev, self.op, 'r =', rev, 'res =', res)
         return Number(res)
 
+    def accept(self, visitor):
+        return visitor.visitBinOperation(self)
+
 
 class UnaryOperation:
 
@@ -206,14 +235,17 @@ class UnaryOperation:
     def __init__(self, op, expr):
         self.op = op
         self.expr = expr
-        assert op in ['-', '+']
+        assert op in ['-', '!']
 
     def evaluate(self, scope):
         if self.op == '!':
             self.op = 'not '
         return Number(eval(self.op + str(self.expr.evaluate(scope).value)))
 
+    def accept(self, visitor):
+        return visitor.visitUnOperation(self)
 
+'''
 def example():
     parent = Scope()
     parent["foo"] = Function(('hello', 'world'),
@@ -229,6 +261,8 @@ def example():
     FunctionCall(FunctionDefinition('foo', parent['foo']),
                  [Number(5), UnaryOperation('-', Number(3))]).evaluate(scope)
 
+'''
+
 
 def my_tests():
 
@@ -241,9 +275,7 @@ def my_tests():
                                                                         Reference('me')),
                                                         [Print(Number(1))],
                                                         [Print(Number(0))])])
-    # print('@', p['Number(0)'].value)
-    # print(Print(Reference('Number(0)')).evaluate(p), Print(Reference('Number(0)')).evaluate(p).value)
-    assert BinaryOperation(Print(Reference('Number(0)')), '==', Number(-1)).evaluate(p)
+    bo = BinaryOperation(Print(Reference('Number(0)')), '==', Number(-1))
     s = Scope(p)
     s['foo'] = Function([], [Reference('foo')])
     s['!!!'] = Function([], [Number(17)])
@@ -256,33 +288,73 @@ def my_tests():
     s['num'] = Number(17)
     s['tru'] = Number(1)
     s['flse'] = Number(0)
-    assert s['Number(0)'] == s['foo']
-    # print('start')
-    Print(FunctionCall(FunctionDefinition('-', s['!!!']), [])).evaluate(s)
-    Print(FunctionCall(FunctionDefinition('ty', s['func']),
-                       [Number(1), FunctionCall(FunctionDefinition('-', s['!!!']), [])])).evaluate(s)
+    # printer.PrettyPrinter.visit(printerr, s['func'])
+    pretty = printer.PrettyPrinter()
+    printerr = printer.PrettyPrinter()
+    pretty.visit(Print(Conditional(Number(0), [Number(1)], [Number(1), Number(0)])))
+    printerr.visit(FunctionDefinition('func', s['func']))
+    printerr.visit(p['Number(0)'])
+    printerr.visit(Conditional(Number(10), [Print(Number(10))], []))
+    printerr.visit(FunctionDefinition('num0', s['Number(0)']))
+    printerr.visit(FunctionDefinition('f00', s['foo']))
+    printerr.visit(FunctionDefinition('!!!', s['!!!']))
+    printerr.visit(Reference('foo1'))
+    printerr.visit(Reference('0'))
+    printerr.visit(s['num'])
+    printerr.visit(s['tru'])
+    printerr.visit(s['flse'])
+    pretty.visit(Print(FunctionCall(FunctionDefinition('-', s['!!!']), [])))
+    pretty.visit(Print(FunctionCall(FunctionDefinition('ty', s['func']),
+                       [Number(1), FunctionCall(FunctionDefinition('-', s['!!!']), [])])))
 
-    Print(BinaryOperation(FunctionCall(FunctionDefinition('ty', s['func']),
+    pretty.visit(BinaryOperation(FunctionCall(FunctionDefinition('ty', s['func']),
                                        [Number(1),
                                        FunctionCall(FunctionDefinition('-', s['!!!']), [])]),
-                          '==',
-                          Number(1))).evaluate(s)
-    Print(Reference('Number(0)')).evaluate(p)
-    Print(BinaryOperation(Reference('Number(0)'), '+', UnaryOperation('!', Number(0)))).evaluate(p)
-    Print(Conditional(Number(0), [Number(1)], [Number(1), Number(0)])).evaluate(s)
-    Print(BinaryOperation(Conditional(Conditional(Number(0),
+                                 '==',
+                                 Number(1)))
+    pretty.visit(Reference('Number(0)'))
+    pretty.visit(Print(BinaryOperation(Reference('Number(0)'), '+', UnaryOperation('!', Number(0)))))
+    pretty.visit(Print(BinaryOperation(Conditional(Conditional(Number(0),
                                                   [Number(1)],
                                                   [Number(1), Number(0)]),
                                       [Number(7)], [Number(8)]),
-                          '-', Number(0))).evaluate(s)
-    Print(BinaryOperation(Print(Read('uuu')), '*',
-                          FunctionCall(FunctionDefinition('foo', s['func']), [Number(0), Number(0)]))).evaluate(s)
-    Print(BinaryOperation(Number(1), '/', Number(2))).evaluate(s)
-    Print(BinaryOperation(FunctionCall(FunctionDefinition('0', s['0']), [Reference('tru'), Reference('flse')]),
+                          '-', Number(0))))
+    pretty.visit(Print(BinaryOperation(Print(Read('uuu')), '*',
+                          FunctionCall(FunctionDefinition('foo', s['func']), [Number(0), Number(0)]))))
+    pretty.visit(BinaryOperation(Number(1), '/', Number(2)))
+    pretty.visit(Print(BinaryOperation(FunctionCall(FunctionDefinition('0', s['0']), [Reference('tru'), Reference('flse')]),
                           '&&',
-                          Number(1))).evaluate(s)
+                          Number(1))))
+
+    fold = folder.ConstantFolder()
+    printerr.visit(Number(0))
+    printerr.visit(fold.visit(Number(0)))
+    bo1 = BinaryOperation(Number(0), '*', Reference('i'))
+    printerr.visit(bo1)
+    printerr.visit(fold.visit(bo1))
+    bo2 = BinaryOperation(FunctionCall(Reference('foo'),
+                                            [BinaryOperation(Reference('o'), '*', Number(0)), Number(10), Number(100)]),
+                          '*',
+                          Reference('i'))
+    bo3 = Conditional(BinaryOperation(BinaryOperation(BinaryOperation(Reference('i'), '-', Reference('i')),
+                                                      '&&',
+                                                      Number(9)),
+                                      '==',
+                                      Reference('x')), [Number(0), bo1], [bo1, bo1])
+    printerr.visit(bo2)
+    printerr.visit(fold.visit(bo2))
+    printerr.visit(bo3)
+    printerr.visit(fold.visit(bo3))
+    func = FunctionDefinition('hard', Function(['a', 'b', 'c', 'd'], [UnaryOperation('-', Number(0)),
+                                               BinaryOperation(Reference('a'), '*', Number(1)),
+                                               Number(0),
+                                               Conditional(Number(0), [], [bo2])]))
+    funcc = FunctionCall(func, [Number(1), bo1, bo3, bo2])
+    printerr.visit(func)
+    printerr.visit(fold.visit(func))
+    printerr.visit(funcc)
+    printerr.visit(fold.visit(funcc))
 
 
 if __name__ == '__main__':
-    example()
     my_tests()
