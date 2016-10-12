@@ -1,7 +1,8 @@
-def sentence(func):
+def statement(func):
     def wrapping(*args, **kwargs):
         func(*args, **kwargs)
         print(';')
+    return wrapping
 
 
 class PrettyPrinter:
@@ -12,10 +13,9 @@ class PrettyPrinter:
     def tab(self):
         print(' ' * self.indent, end='')
 
-    # @sentence
+    @statement
     def visit(self, tree):
         tree.accept(self)
-        print(';')
 
     def visitNumber(self, n):
         # self.tab()
@@ -44,16 +44,14 @@ class PrettyPrinter:
         print(') {')
         for exp in c.t:
             self.tab()
-            exp.accept(self)
-            print()
+            self.visit(exp)
         self.indent -= 4
         self.tab()
         print('} else {')
         self.indent += 4
         for exp in c.f:
             self.tab()
-            exp.accept(self)
-            print()
+            self.visit(exp)
         self.indent -= 4
         self.tab()
         print('}', end='')
