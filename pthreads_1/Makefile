@@ -1,23 +1,25 @@
-CC      ?= gcc
-CFLAGS  ?= -Wall -Wextra -Werror -ansi -pedantic
-LDFLAGS ?= -lpthread
-BIN = walk
+CFLAGS = -Wall -Wextra -Werror -ansi -pedantic -fsanitize=thread -g
+LDFLAGS = -lpthread
+CC = gcc
 
-all: $(BIN)
+TARGET=pqsort
 
-walk: walk.o atomic.o barrier.o
-	$(CC) walk.o atomic.o barrier.o	$(LDFLAGS) -o $(BIN)
+_OBJ = linkedlist.o queue.o squeue.o wsqueue.o thread_pool.o $(TARGET).o
+OBJ = $(patsubst %,bin/%,$(_OBJ))
 
-walk.o: main.c
-	$(CC) -c main.c $(CFLAGS) -o walk.o
+_DEPS = linkedlist.h queue.h squeue.h wsqueue.h thread_pool.h
+DEPS = $(patsubst %,include/%,$(_DEPS))
 
-atomic.o: atomic.c
-	$(CC) -c atomic.c $(CFLAGS) -o atomic.o
+$(TARGET): bin $(OBJ)
+	$(CC) $(OBJ) $(CFLAGS) $(LDFLAGS) -o $@
 
-barrier.o: barrier.c
-	$(CC) -c barrier.c $(CFLAGS) -o barrier.o
+bin:
+	mkdir -p $@
 
-clean:
-	rm *.o walk
+bin/%.o: src/%.c $(DEPS)
+	$(CC) -c $(CFLAGS) $< -o $@
 
 .PHONY: clean
+
+clean:
+	rm -rf bin $(TARGET)
