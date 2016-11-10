@@ -35,7 +35,7 @@ foldl' f z (x:xs) = foldl' f (f z x) xs
 -- concat' [1,2] [3] == [1,2,3]
 concat' :: [a] -> [a] -> [a]
 concat' [] ys = ys
-concat' xs ys = xs ++ ys
+concat' (x:xs) ys = x:concat' xs ys
 
 -- 8. quickSort' возвращает его отсортированный список (0,5)
 quickSort' :: Ord a => [a] -> [a]
