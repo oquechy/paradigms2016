@@ -30,21 +30,12 @@ len' (_:xs) = 1 + len' xs
 
 foldl' :: (a -> b -> a) -> a -> [b] -> a
 foldl' _ z [] = z
-foldl' f z l = f res lastx
-               where lenl = len' l
-                     first = take' (len' l - 1) l
-                     res = foldl' f z first
-                     last = drop' (len' l - 1) l
-                     lastx = head' last  
+foldl' f z (x:xs) = foldl' f (f z x) xs
 -- 7. concat' принимает на вход два списка и возвращает их конкатенацию (0,5)
 -- concat' [1,2] [3] == [1,2,3]
 concat' :: [a] -> [a] -> [a]
 concat' [] ys = ys
-concat' xs ys = concat' shortxs longys
-                where shortxs = take' (len' xs - 1) xs
-                      lastxs = drop' (len' xs - 1) xs
-                      lastx = head' lastxs
-                      longys =  lastx:ys
+concat' xs ys = xs ++ ys
 
 -- 8. quickSort' возвращает его отсортированный список (0,5)
 quickSort' :: Ord a => [a] -> [a]
