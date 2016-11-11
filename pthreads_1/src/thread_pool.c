@@ -36,18 +36,11 @@ void *process(void *data)
         if (node) {
             struct Task *task = (struct Task *)node;
             task->f(task->arg);
-            if (task->type) {
-                pthread_mutex_destroy(&task->mutex);
-                pthread_cond_destroy(&task->cond);
-                free(task);
-            }
-            else {
-                pthread_mutex_lock(&task->mutex);
-                pthread_cond_broadcast(&task->cond);
-                pthread_mutex_unlock(&task->mutex);
-                task->done = 1;
-                task_finit(task);
-            }
+            pthread_mutex_lock(&task->mutex);
+            pthread_cond_broadcast(&task->cond);
+            pthread_mutex_unlock(&task->mutex);
+            task->done = 1;
+            task_finit(task);
         }
     }
 
