@@ -16,3 +16,4 @@ void squeue_push(struct squeue *squeue, struct list_node *node);
 struct list_node *squeue_pop(struct squeue *squeue);
 
 #endif /*__SQUEUE_H__*/
+

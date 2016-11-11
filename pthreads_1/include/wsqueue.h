@@ -19,3 +19,4 @@ void wsqueue_notify(struct wsqueue *queue);
 void wsqueue_notify_all(struct wsqueue *queue);
 
 #endif /*__WSQUEUE_H__*/
+

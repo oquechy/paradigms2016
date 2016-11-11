@@ -1,6 +1,6 @@
-CFLAGS = -Wall -Wextra -Werror -ansi -pedantic -fsanitize=thread -g
-LDFLAGS = -lpthread
-CC = gcc
+CFLAGS = -Wall -Wextra -Werror -ansi -pedantic -fsanitize=thread
+LDFLAGS = -lpthread -ltsan
+CC = clang
 
 TARGET=pqsort
 
@@ -11,7 +11,7 @@ _DEPS = linkedlist.h queue.h squeue.h wsqueue.h thread_pool.h
 DEPS = $(patsubst %,include/%,$(_DEPS))
 
 $(TARGET): bin $(OBJ)
-	$(CC) $(OBJ) $(CFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(OBJ) $(LDFLAGS) -o $@
 
 bin:
 	mkdir -p $@

@@ -3,16 +3,23 @@
 #include <stdio.h>
 #include <assert.h>
 
-void task_init(struct Task* task, void (*f)(void *), void* arg){
-    assert(task);
-    assert(f);
-    assert(arg);
+void task_init(struct Task* task, void (*f)(void *), void* arg, struct ThreadPool *pool, int type){
     pthread_cond_init(&task->cond, NULL);
     pthread_mutex_init(&task->mutex, NULL);
     task->done = 0;
     task->f = f;
     task->arg = arg;
     task->link.prev = task->link.next = 0;
+    task->cont = &pool->cont;
+    task->type = type;
+    task->q = &pool->tasks;
+}
+
+void task_finit(struct Task* task) {
+    pthread_mutex_destroy(&task->mutex);
+    pthread_cond_destroy(&task->cond);
+    free(task->arg);
+    free(task);
 }
 
 void *process(void *data)
@@ -23,18 +30,24 @@ void *process(void *data)
         struct list_node *node;
         if (pool->cont)
             wsqueue_wait(&pool->tasks);
+        if (!pool->cont)
+            break;
         node = wsqueue_pop(&pool->tasks);
         if (node) {
             struct Task *task = (struct Task *)node;
             task->f(task->arg);
-            pthread_mutex_lock(&task->mutex);
-            pthread_cond_broadcast(&task->cond);
-            pthread_mutex_unlock(&task->mutex);
-            task->done = 1;
-            pthread_mutex_destroy(&task->mutex);
-            pthread_cond_destroy(&task->cond);
-            free(task->arg);
-            /*free(node);*/
+            if (task->type) {
+                pthread_mutex_destroy(&task->mutex);
+                pthread_cond_destroy(&task->cond);
+                free(task);
+            }
+            else {
+                pthread_mutex_lock(&task->mutex);
+                pthread_cond_broadcast(&task->cond);
+                pthread_mutex_unlock(&task->mutex);
+                task->done = 1;
+                task_finit(task);
+            }
         }
     }
 
@@ -71,8 +84,6 @@ void thpool_wait(struct Task* task) {
 
 void thpool_finit(struct ThreadPool* pool) {
     int i;
-    pool->cont = 0;
-    wsqueue_notify_all(&pool->tasks);
     for (i = 0; i < pool->ths_nm; ++i)
         pthread_join(pool->ths[i], NULL);
     wsqueue_finit(&pool->tasks);
