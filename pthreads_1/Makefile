@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wextra -Werror -ansi -pedantic -fsanitize=undefined
+CFLAGS = -Wall -Wextra -Werror -ansi -pedantic
 LDFLAGS = -lpthread -lubsan
 CC = clang
 

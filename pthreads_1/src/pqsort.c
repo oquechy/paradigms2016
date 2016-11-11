@@ -29,15 +29,6 @@ int cmp_i(const void *i1, const void *i2) {
     return a - b;
 }
 
-/*void finish(void *t) {
-    struct Task *task = t;
-    thpool_wait(task);
-    --*task->cont;
-    if (!*task->cont)
-        wsqueue_notify_all(task->q);
-    task_finit(task);
-}*/
-
 void arg_init(args *arg1, struct ThreadPool *pool, int *l, int *r, int rec) {
     arg1->pool= pool;
     arg1->l = l;
@@ -50,7 +41,6 @@ void pqsort(void *ptr) {
     int *last, *first;
     int **i = &first, **j = &last;
     struct Task *left, *right;
-    /*struct Task *w_left, *w_right;*/
     args *arg1, *arg2;
     arg = ptr;
     last = arg->r - 1;
@@ -59,18 +49,20 @@ void pqsort(void *ptr) {
     if (!arg->rec){
         qsort(arg->l, arg->r - arg->l, sizeof(int), cmp_i);
         --arg->pool->cont;
+        if (!arg->pool->cont)
+            wsqueue_notify_all(&arg->pool->tasks);
         return;
     }
 
     if (arg->r - arg->l <= 1){
         --arg->pool->cont;
+        if (!arg->pool->cont)
+            wsqueue_notify_all(&arg->pool->tasks);
         return;
     }
 
     left = malloc(sizeof(struct Task));
     right = malloc(sizeof(struct Task));
-    /*w_left = malloc(sizeof(struct Task));
-    //w_right = malloc(sizeof(struct Task));*/
     arg1 = malloc(sizeof(args));
     arg2 = malloc(sizeof(args));
 
@@ -80,17 +72,12 @@ void pqsort(void *ptr) {
     arg_init(arg1, arg->pool, arg->l, *j + 1, arg->rec - 1);
     arg_init(arg2, arg->pool, *i, arg->r, arg->rec - 1);
 
-    task_init(left, pqsort, arg1, arg->pool, 0);
-    task_init(right, pqsort, arg2, arg->pool, 0);
-    /*task_init(w_left, finish, left, arg->pool, 1);
-    //task_init(w_right, finish, right, arg->pool, 1);*/
+    task_init(left, pqsort, arg1);
+    task_init(right, pqsort, arg2);
     thpool_submit(arg->pool, left);
     thpool_submit(arg->pool, right);
 
     ++arg->pool->cont;
-
-    /*thpool_submit(arg->pool, w_left);
-    //thpool_submit(arg->pool, w_right);*/
 }
 
 int main(int argc, char **argv) {
@@ -100,7 +87,7 @@ int main(int argc, char **argv) {
     struct ThreadPool pool;
     int sorted = 1;
     args *arg = malloc(sizeof(args));
-    struct Task *t = malloc(sizeof(struct Task))/*, *wt = malloc(sizeof(struct Task))*/;
+    struct Task *t = malloc(sizeof(struct Task));
     (void) argc;
 
     sscanf(argv[1], "%d", &nm);
@@ -118,10 +105,8 @@ int main(int argc, char **argv) {
 
     arg_init(arg, &pool, arr, arr + n, rec);
 
-    task_init(t, pqsort, arg, &pool, 0);
-    /*task_init(wt, finish, t, &pool, 1);*/
+    task_init(t, pqsort, arg);
     thpool_submit(&pool, t);
-    /*thpool_submit(&pool, wt);*/
 
     qsort(arr0, (size_t)n, sizeof(int), cmp_i);
 
@@ -136,7 +121,11 @@ int main(int argc, char **argv) {
         printf("%d ", arr0[i]);
     printf("\n");
 
-    printf("%d", sorted);
+    if (sorted)
+        printf("I made it :)\n");
+    else
+        printf("Fail\n");
+
 
     free(arr);
     free(arr0);

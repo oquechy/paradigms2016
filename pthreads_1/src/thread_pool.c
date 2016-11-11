@@ -3,16 +3,13 @@
 #include <stdio.h>
 #include <assert.h>
 
-void task_init(struct Task* task, void (*f)(void *), void* arg, struct ThreadPool *pool, int type){
+void task_init(struct Task* task, void (*f)(void *), void* arg){
     pthread_cond_init(&task->cond, NULL);
     pthread_mutex_init(&task->mutex, NULL);
     task->done = 0;
     task->f = f;
     task->arg = arg;
     task->link.prev = task->link.next = 0;
-    task->cont = &pool->cont;
-    task->type = type;
-    task->q = &pool->tasks;
 }
 
 void task_finit(struct Task* task) {
@@ -28,8 +25,10 @@ void *process(void *data)
 
     while (pool->cont || queue_size(&pool->tasks.squeue.queue)) {
         struct list_node *node;
-        if (pool->cont)
-            wsqueue_wait(&pool->tasks);
+        pthread_mutex_lock(&pool->tasks.squeue.mutex);
+        while (pool->cont && !queue_size(&pool->tasks.squeue.queue))
+               pthread_cond_wait(&pool->tasks.cond, &pool->tasks.squeue.mutex);
+        pthread_mutex_unlock(&pool->tasks.squeue.mutex);
         if (!pool->cont)
             break;
         node = wsqueue_pop(&pool->tasks);

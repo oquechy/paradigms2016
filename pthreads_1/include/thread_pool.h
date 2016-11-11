@@ -30,7 +30,7 @@ void thpool_init(struct ThreadPool* pool, unsigned threads_nm);
 void thpool_submit(struct ThreadPool* pool, struct Task* task);
 void thpool_wait(struct Task* task);
 void thpool_finit(struct ThreadPool* pool);
-void task_init(struct Task* task, void (*f)(void *), void* arg, struct ThreadPool *pool, int type);
+void task_init(struct Task* task, void (*f)(void *), void* arg);
 void task_finit(struct Task* task);
 
 #endif
