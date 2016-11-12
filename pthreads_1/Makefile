@@ -1,5 +1,5 @@
 CFLAGS = -Wall -Wextra -Werror -ansi -pedantic
-LDFLAGS = -lpthread -lubsan
+LDFLAGS = -lpthread
 CC = clang
 
 TARGET=pqsort

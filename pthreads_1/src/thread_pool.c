@@ -1,7 +1,6 @@
 #include "../include/thread_pool.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
 
 void task_init(struct Task* task, void (*f)(void *), void* arg){
     pthread_cond_init(&task->cond, NULL);
@@ -35,11 +34,13 @@ void *process(void *data)
         if (node) {
             struct Task *task = (struct Task *)node;
             task->f(task->arg);
+            task->done = 1;
             pthread_mutex_lock(&task->mutex);
             pthread_cond_broadcast(&task->cond);
             pthread_mutex_unlock(&task->mutex);
-            task->done = 1;
             task_finit(task);
+            if (!pool->cont)
+                pthread_cond_broadcast(&pool->cond);
         }
     }
 
@@ -50,6 +51,8 @@ void thpool_init(struct ThreadPool* pool, unsigned threads_nm) {
     int rc, i;
     wsqueue_init(&pool->tasks);
     rc = 0;
+    pthread_cond_init(&pool->cond, NULL);
+    pthread_mutex_init(&pool->mutex, NULL);
     pool->cont = 1;
     pool->ths_nm = threads_nm;
     for(i = 0; i < (int)threads_nm; ++i)
@@ -63,6 +66,13 @@ void thpool_init(struct ThreadPool* pool, unsigned threads_nm) {
 
 void thpool_submit(struct ThreadPool* pool, struct Task* task) {
     wsqueue_push(&pool->tasks, (struct list_node *)task);
+}
+
+void thpool_tasks_wait(struct ThreadPool *pool) {
+    pthread_mutex_lock(&pool->mutex);
+    while (pool->cont)
+        pthread_cond_wait(&pool->cond, &pool->mutex);
+    pthread_mutex_unlock(&pool->mutex);
 }
 
 void thpool_wait(struct Task* task) {
@@ -79,4 +89,8 @@ void thpool_finit(struct ThreadPool* pool) {
     for (i = 0; i < pool->ths_nm; ++i)
         pthread_join(pool->ths[i], NULL);
     wsqueue_finit(&pool->tasks);
+}
+
+void thpool_notify_all(struct ThreadPool* pool) {
+    wsqueue_notify_all(&pool->tasks);
 }

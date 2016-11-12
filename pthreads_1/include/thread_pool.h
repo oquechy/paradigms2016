@@ -23,6 +23,8 @@ struct ThreadPool {
     pthread_t ths[MAXT];
     struct wsqueue tasks;
     atomic_int volatile cont;
+    pthread_cond_t cond;
+    pthread_mutex_t mutex;
     int ths_nm;
 };
 
@@ -32,5 +34,7 @@ void thpool_wait(struct Task* task);
 void thpool_finit(struct ThreadPool* pool);
 void task_init(struct Task* task, void (*f)(void *), void* arg);
 void task_finit(struct Task* task);
+void thpool_notify_all(struct ThreadPool* pool);
+void thpool_tasks_wait(struct ThreadPool *pool);
 
 #endif

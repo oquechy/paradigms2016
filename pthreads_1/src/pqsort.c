@@ -50,14 +50,14 @@ void pqsort(void *ptr) {
         qsort(arg->l, arg->r - arg->l, sizeof(int), cmp_i);
         --arg->pool->cont;
         if (!arg->pool->cont)
-            wsqueue_notify_all(&arg->pool->tasks);
+            thpool_notify_all(arg->pool);
         return;
     }
 
     if (arg->r - arg->l <= 1){
         --arg->pool->cont;
         if (!arg->pool->cont)
-            wsqueue_notify_all(&arg->pool->tasks);
+            thpool_notify_all(arg->pool);
         return;
     }
 
@@ -67,7 +67,7 @@ void pqsort(void *ptr) {
     arg2 = malloc(sizeof(args));
 
 
-    partition(i, j, arg->l[rand() % (arg->r - arg->l)]);
+    partition(i, j, arg->l[0]);
 
     arg_init(arg1, arg->pool, arg->l, *j + 1, arg->rec - 1);
     arg_init(arg2, arg->pool, *i, arg->r, arg->rec - 1);
@@ -104,12 +104,12 @@ int main(int argc, char **argv) {
     thpool_init(&pool, (unsigned int)nm);
 
     arg_init(arg, &pool, arr, arr + n, rec);
-
     task_init(t, pqsort, arg);
     thpool_submit(&pool, t);
 
     qsort(arr0, (size_t)n, sizeof(int), cmp_i);
 
+    thpool_tasks_wait(&pool);
     thpool_finit(&pool);
 
     for(i = 0; i < n; ++i)
@@ -125,7 +125,6 @@ int main(int argc, char **argv) {
         printf("I made it :)\n");
     else
         printf("Fail\n");
-
 
     free(arr);
     free(arr0);
