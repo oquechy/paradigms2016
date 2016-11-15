@@ -2,10 +2,12 @@
 #define __QUEUE_H__
 
 #include "linkedlist.h"
+#include "atomic.h"
+#include <pthread.h>
 
 struct queue {
     struct list_node head;
-    unsigned long size;
+    atomicint_t size;
 };
 
 void queue_init(struct queue *queue);

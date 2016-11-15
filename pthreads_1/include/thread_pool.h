@@ -4,8 +4,13 @@
 #define MAXT 6
 
 #include <pthread.h>
-#include <stdatomic.h>
 #include "wsqueue.h"
+#include "../include/atomic.h"
+
+struct RecursiveTask {
+    struct RecursiveTask *l, *r;
+    struct Task *task;
+};
 
 struct Task {
     struct list_node link;
@@ -13,16 +18,13 @@ struct Task {
     void* arg;
     pthread_cond_t cond;
     pthread_mutex_t mutex;
-    atomic_int volatile done;
-    atomic_int volatile *cont;
-    int type;
-    struct wsqueue *q;
+    atomicint_t done;
 };
 
 struct ThreadPool {
     pthread_t ths[MAXT];
     struct wsqueue tasks;
-    atomic_int volatile cont;
+    atomicint_t cont;
     pthread_cond_t cond;
     pthread_mutex_t mutex;
     int ths_nm;
@@ -36,5 +38,8 @@ void task_init(struct Task* task, void (*f)(void *), void* arg);
 void task_finit(struct Task* task);
 void thpool_notify_all(struct ThreadPool* pool);
 void thpool_tasks_wait(struct ThreadPool *pool);
+void rtask_wait(struct RecursiveTask *rt);
+void rtask_init(struct RecursiveTask *rt, struct Task *t);
+void rtask_free(struct RecursiveTask *rt);
 
 #endif

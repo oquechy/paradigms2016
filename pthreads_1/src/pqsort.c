@@ -5,6 +5,7 @@
 typedef struct Arg{
     struct ThreadPool *pool;
     int *l, *r, rec;
+    struct RecursiveTask *rt;
 }args;
 
 void swap(int *i, int *j) {
@@ -29,11 +30,12 @@ int cmp_i(const void *i1, const void *i2) {
     return a - b;
 }
 
-void arg_init(args *arg1, struct ThreadPool *pool, int *l, int *r, int rec) {
+void arg_init(args *arg1, struct ThreadPool *pool, int *l, int *r, int rec, struct RecursiveTask *rt) {
     arg1->pool= pool;
     arg1->l = l;
     arg1->r = r;
     arg1->rec = rec;
+    arg1->rt = rt;
 }
 
 void pqsort(void *ptr) {
@@ -42,21 +44,22 @@ void pqsort(void *ptr) {
     int **i = &first, **j = &last;
     struct Task *left, *right;
     args *arg1, *arg2;
+    struct RecursiveTask *l, *r;
     arg = ptr;
     last = arg->r - 1;
     first = arg->l;
 
     if (!arg->rec){
         qsort(arg->l, arg->r - arg->l, sizeof(int), cmp_i);
-        --arg->pool->cont;
-        if (!arg->pool->cont)
+        atomicint_add(&arg->pool->cont, -1);
+        if (!atomicint_get(&arg->pool->cont))
             thpool_notify_all(arg->pool);
         return;
     }
 
     if (arg->r - arg->l <= 1){
-        --arg->pool->cont;
-        if (!arg->pool->cont)
+        atomicint_add(&arg->pool->cont, -1);
+        if (!atomicint_get(&arg->pool->cont))
             thpool_notify_all(arg->pool);
         return;
     }
@@ -65,19 +68,25 @@ void pqsort(void *ptr) {
     right = malloc(sizeof(struct Task));
     arg1 = malloc(sizeof(args));
     arg2 = malloc(sizeof(args));
+    l = malloc(sizeof(struct RecursiveTask));
+    r = malloc(sizeof(struct RecursiveTask));
 
 
     partition(i, j, arg->l[0]);
 
-    arg_init(arg1, arg->pool, arg->l, *j + 1, arg->rec - 1);
-    arg_init(arg2, arg->pool, *i, arg->r, arg->rec - 1);
+    rtask_init(l, left);
+    rtask_init(r, right);
+    arg->rt->l = l;
+    arg->rt->r = r;
+    arg_init(arg1, arg->pool, arg->l, *j + 1, arg->rec - 1, l);
+    arg_init(arg2, arg->pool, *i, arg->r, arg->rec - 1, r);
 
     task_init(left, pqsort, arg1);
     task_init(right, pqsort, arg2);
     thpool_submit(arg->pool, left);
     thpool_submit(arg->pool, right);
 
-    ++arg->pool->cont;
+    atomicint_add(&arg->pool->cont, 1);
 }
 
 int main(int argc, char **argv) {
@@ -88,6 +97,7 @@ int main(int argc, char **argv) {
     int sorted = 1;
     args *arg = malloc(sizeof(args));
     struct Task *t = malloc(sizeof(struct Task));
+    struct RecursiveTask *rt = malloc(sizeof(struct RecursiveTask));
     (void) argc;
 
     sscanf(argv[1], "%d", &nm);
@@ -103,12 +113,15 @@ int main(int argc, char **argv) {
 
     thpool_init(&pool, (unsigned int)nm);
 
-    arg_init(arg, &pool, arr, arr + n, rec);
+    arg_init(arg, &pool, arr, arr + n, rec, rt);
     task_init(t, pqsort, arg);
+    rtask_init(rt, t);
     thpool_submit(&pool, t);
 
     qsort(arr0, (size_t)n, sizeof(int), cmp_i);
 
+    rtask_wait(rt);
+    rtask_free(rt);
     thpool_tasks_wait(&pool);
     thpool_finit(&pool);
 

@@ -1,4 +1,5 @@
 #include "../include/wsqueue.h"
+#include <stdatomic.h>
 
 void wsqueue_init(struct wsqueue *queue)
 {
@@ -50,3 +51,5 @@ void wsqueue_notify_all(struct wsqueue *queue)
     pthread_cond_broadcast(&queue->cond);
     pthread_mutex_unlock(&queue->squeue.mutex);
 }
+
+
