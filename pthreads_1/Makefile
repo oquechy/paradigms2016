@@ -1,13 +1,13 @@
-CFLAGS = -Wall -Wextra -Werror -ansi -pedantic -fsanitize=thread
-LDFLAGS = -lpthread -ltsan
+CFLAGS = -Wall -Wextra -Werror -ansi -pedantic
+LDFLAGS = -lpthread
 CC = clang
 
 TARGET=pqsort
 
-_OBJ = linkedlist.o queue.o squeue.o wsqueue.o thread_pool.o atomic.o $(TARGET).o
+_OBJ = linkedlist.o queue.o squeue.o wsqueue.o thread_pool.o $(TARGET).o
 OBJ = $(patsubst %,bin/%,$(_OBJ))
 
-_DEPS = linkedlist.h queue.h squeue.h wsqueue.h thread_pool.h atomic.h
+_DEPS = linkedlist.h queue.h squeue.h wsqueue.h thread_pool.h
 DEPS = $(patsubst %,include/%,$(_DEPS))
 
 $(TARGET): bin $(OBJ)

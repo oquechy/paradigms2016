@@ -51,16 +51,11 @@ void pqsort(void *ptr) {
 
     if (!arg->rec){
         qsort(arg->l, arg->r - arg->l, sizeof(int), cmp_i);
-        if (!atomicint_get(&arg->pool->cont))
-            thpool_notify_all(arg->pool);
         return;
     }
 
-    if (arg->r - arg->l <= 1){
-        if (!atomicint_get(&arg->pool->cont))
-            thpool_notify_all(arg->pool);
+    if (arg->r - arg->l <= 1)
         return;
-    }
 
     left = malloc(sizeof(struct Task));
     right = malloc(sizeof(struct Task));

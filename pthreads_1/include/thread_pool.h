@@ -5,7 +5,6 @@
 
 #include <pthread.h>
 #include "wsqueue.h"
-#include "../include/atomic.h"
 
 struct RecursiveTask {
     struct RecursiveTask *l, *r;
@@ -18,13 +17,13 @@ struct Task {
     void* arg;
     pthread_cond_t cond;
     pthread_mutex_t mutex;
-    atomicint_t done;
+    int done;
 };
 
 struct ThreadPool {
     pthread_t ths[MAXT];
     struct wsqueue tasks;
-    atomicint_t cont;
+    int cont;
     pthread_cond_t cond;
     pthread_mutex_t mutex;
     int ths_nm;
