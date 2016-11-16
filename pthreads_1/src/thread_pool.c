@@ -39,7 +39,6 @@ void *process(void *data)
             atomicint_add(&task->done, 1);
             pthread_cond_broadcast(&task->cond);
             pthread_mutex_unlock(&task->mutex);
-            /*task_finit(task);*/
             if (!atomicint_get(&pool->cont))
                 pthread_cond_broadcast(&pool->cond);
         }
@@ -111,6 +110,8 @@ void thpool_tasks_wait(struct ThreadPool *pool) {
 
 void thpool_finit(struct ThreadPool* pool) {
     int i;
+    atomicint_add(&pool->cont, -1);
+    wsqueue_notify_all(&pool->tasks);
     for (i = 0; i < pool->ths_nm; ++i)
         pthread_join(pool->ths[i], NULL);
     atomicint_destroy(&pool->cont);

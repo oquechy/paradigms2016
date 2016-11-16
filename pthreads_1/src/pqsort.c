@@ -51,14 +51,12 @@ void pqsort(void *ptr) {
 
     if (!arg->rec){
         qsort(arg->l, arg->r - arg->l, sizeof(int), cmp_i);
-        atomicint_add(&arg->pool->cont, -1);
         if (!atomicint_get(&arg->pool->cont))
             thpool_notify_all(arg->pool);
         return;
     }
 
     if (arg->r - arg->l <= 1){
-        atomicint_add(&arg->pool->cont, -1);
         if (!atomicint_get(&arg->pool->cont))
             thpool_notify_all(arg->pool);
         return;
@@ -85,8 +83,6 @@ void pqsort(void *ptr) {
     task_init(right, pqsort, arg2);
     thpool_submit(arg->pool, left);
     thpool_submit(arg->pool, right);
-
-    atomicint_add(&arg->pool->cont, 1);
 }
 
 int main(int argc, char **argv) {
@@ -122,17 +118,11 @@ int main(int argc, char **argv) {
 
     rtask_wait(rt);
     rtask_free(rt);
-    thpool_tasks_wait(&pool);
+    /*thpool_tasks_wait(&pool);*/
     thpool_finit(&pool);
 
     for(i = 0; i < n; ++i)
         sorted &= (arr[i] == arr0[i]);
-    for(i = 0; i < n; ++i)
-        printf("%d ",arr[i]);
-    printf("\n");
-    for(i = 0; i < n; ++i)
-        printf("%d ", arr0[i]);
-    printf("\n");
 
     if (sorted)
         printf("I made it :)\n");
