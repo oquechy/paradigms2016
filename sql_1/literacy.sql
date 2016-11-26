@@ -32,6 +32,7 @@ create table LiteracyRate (
   unique (CountryCode, Year)
 );
 
+begin transaction;
 insert into Country values('AFG','Afghanistan',652090.0,22720000,'Islamic Emirate');
 insert into Country values('NLD','Netherlands',41526.0,15864000,'Constitutional Monarchy');
 insert into Country values('ANT','Netherlands Antilles',800.0,217000,'Nonmetropolitan Territory of The Netherlands');
@@ -270,7 +271,7 @@ insert into Country values('IOT','British Indian Ocean Territory',78.0,0,'Depend
 insert into Country values('SGS','South Georgia and the South Sandwich Islands',3903.0,0,'Dependent Territory of the UK');
 insert into Country values('HMD','Heard Island and McDonald Islands',359.0,0,'Territory of Australia');
 insert into Country values('ATF','French Southern territories',7780.0,0,'Nonmetropolitan Territory of France');
-insert into Country values('UMI','United States Minor Outlying Islands',16.0,0,'Dependent Territory of the US');
+insert into Country values('UMI','United States Minor Outlying Islands',16.0,1,'Dependent Territory of the US');
 
 
 insert into City values(1,'Kabul','AFG',1780000);
@@ -5830,3 +5831,4 @@ insert into LiteracyRate values('ZMB', 2007, 61.42828751);
 insert into LiteracyRate values('ZWE', 1982, 77.79416656);
 insert into LiteracyRate values('ZWE', 1992, 83.51258087);
 insert into LiteracyRate values('ZWE', 2011, 83.5827179);
+end transaction;
