@@ -1,0 +1,15 @@
+os:
+  - linux
+  - osx
+language: 
+  - python
+python:
+  - "2.6"
+  - "2.7"
+  - "3.3"
+  - "3.4"
+  - "nightly"
+install:
+  - pip install pytest
+script:
+  - pytest testing_1/model.py 
