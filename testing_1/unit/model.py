@@ -1,4 +1,5 @@
 import operator
+from unittest.mock import MagicMock
 
 class Scope(object):
     def __init__(self, parent=None):
@@ -17,13 +18,13 @@ class Scope(object):
         self.dict[key] = value
 
 def test_scope():
-    Scope p
+    p = Scope()
     n = Number(100)
     p['fst'] = n
-    f = BinaryOperation(Number(10), '%', Number(3)
+    f = BinaryOperation(Number(10), '%', Number(3))
     g = Function([], [Number(17)])
     p['snd'] = f
-    Scope s(p)
+    s = Scope(p)
     p['snd'] = g
     assert s['snd'] != p['snd']
     assert s['snd'] == n
@@ -38,7 +39,7 @@ class Number:
         return self
 
 def test_nume():
-    Scope s
+    s = Scope()
     n1 = Number(17)
     assert n1.value == 17
     assert n1.evaluate(s) == n1 
@@ -53,7 +54,7 @@ class Reference:
         return scope[self.name]
 
 def test_ref():
-    Scope s
+    s = Scope()
     n1 = Number(1)
     s['tru'] = n1
     r = Reference('tru')
@@ -73,7 +74,7 @@ class UnaryOperation:
         return Number(self.ops[self.op](a))
 
 def test_uo():
-    Scope s
+    s = Scope()
     uo = UnaryOperation("!", Number(5))
     assert uo.evaluate(s) == 0
     
@@ -104,7 +105,7 @@ class BinaryOperation:
         return Number(self.ops[self.op](l, r))
 
 def test_bo():
-    Scope s
+    s = Scope()
     bo = BinaryOperation(Number(0), '+', UnaryOperation('!', Number(0)))
     assert bo.evaluate(s) == 1
 
@@ -121,7 +122,7 @@ class Function:
         return last
 
 def test_foo():
-    Scope s
+    s = Scope()
     n = Number(17)
     f = Function([], [n])
     assert f.evaluate(s) == n
@@ -136,6 +137,12 @@ class FunctionDefinition:
         scope[self.name] = self.func
         return self.func
 
+def test_food():
+    s = Scope()
+    s['foo'] = Function([], [Reference('foo')])
+    f = FunctionDefinition('foo', s['foo'])
+    assert f.evaluate(s) == s['foo']
+
 
 class FunctionCall:
     def __init__(self, fun_expr, args):
@@ -149,6 +156,13 @@ class FunctionCall:
         for i, x in enumerate(func.args):
             call_scope[x] = results[i]
         return func.evaluate(call_scope)
+
+def test_fc():
+    s = Scope()
+    s['foo'] = Function([], [Reference('foo')])
+    f = FunctionDefinition('foo', s['foo'])
+    fc = FunctionCall(f, [])
+    assert fc.evaluate(s) == s['foo']
 
 
 class Conditional:
@@ -170,6 +184,12 @@ class Conditional:
             res = stmt.evaluate(scope)
         return res
 
+def test_cond():
+    s = Scope()
+    n = Number(0)
+    c = Conditional(Number(0), [Number(1)], [Number(1), n])
+    assert c.evaluate(s) == n
+
 
 class Print:
     def __init__(self, expr):
@@ -180,6 +200,11 @@ class Print:
         print(a.value)
         return a
 
+def test_print():
+    s = Scope()
+    n = Number(0)
+    assert Print(n).evaluate(s) == n
+
 
 class Read:
     def __init__(self, name):
@@ -189,6 +214,12 @@ class Read:
         a = int(input())
         scope[self.name] = a
         return Number(a)
+
+def test_read():
+    r = Read('a')
+    r.evaluate = MagicMock(return_value=42)
+    s = Scope()
+    assert r.evaluate(s) == 42
 
 
 def test():
@@ -204,59 +235,6 @@ def test():
     scope["bar"] = Number(20)
     assert scope["bar"].value == 20
     #assert type(scope["bar"]) == Number
-
-    assert BinaryOperation(Number(5), "&&", Number(0)).evaluate(scope).value == 0
-    assert BinaryOperation(Number(5), "&&", Number(-2)).evaluate(scope).value == 1
-    assert UnaryOperation("!", Number(5)).evaluate(scope).value == 0
-    p = Scope()
-    p['Number(0)'] = UnaryOperation('-', BinaryOperation(Number(10), '%', Number(3))).evaluate(p)
-    p['func'] = Function(['mama', 'papa'], [Read('me'),
-                                            Conditional(BinaryOperation(BinaryOperation(Reference('mama'),
-                                                                                        '+', Reference('papa')),
-                                                                        '==',
-                                                                        Reference('me')),
-                                                        [Print(Number(1))],
-                                                        [Print(Number(0))])])
-    # print('@', p['Number(0)'].value)
-    # print(Print(Reference('Number(0)')).evaluate(p), Print(Reference('Number(0)')).evaluate(p).value)
-    BinaryOperation(Print(Reference('Number(0)')), '==', Number(-1)).evaluate(p)
-    s = Scope(p)
-    s['foo'] = Function([], [Reference('foo')])
-    s['!!!'] = Function([], [Number(17)])
-    s['foo1'] = Function([], [Reference('foo')])
-    s['0'] = Function(['1', '2'], [Read('f'), Print(Reference('f')), Conditional(Reference('f'),
-                                                                                 [Reference('1')], [Reference('0')])])
-    s['Number(0)'] = Conditional(Number(1),
-                                 [FunctionDefinition('foo', s['foo'])],
-                                 FunctionDefinition('func', s['func'])).evaluate(s)
-    s['num'] = Number(17)
-    s['tru'] = Number(1)
-    s['flse'] = Number(0)
-    assert s['Number(0)'] == s['foo']
-    # print('start')
-    assert Print(FunctionCall(FunctionDefinition('-', s['!!!']), [])).evaluate(s) == 2
-    assert Print(FunctionCall(FunctionDefinition('ty', s['func']),
-                       [Number(1), FunctionCall(FunctionDefinition('-', s['!!!']), [])])).evaluate(s) == -1
-
-    assert Print(BinaryOperation(FunctionCall(FunctionDefinition('ty', s['func']),
-                                       [Number(1),
-                                       FunctionCall(FunctionDefinition('-', s['!!!']), [])]),
-                          '==',
-                          Number(1))).evaluate(s) == 17
-    Print(Reference('Number(0)')).evaluate(p) 
-    Print(BinaryOperation(Reference('Number(0)'), '+', UnaryOperation('!', Number(0)))).evaluate(p)
-    Print(Conditional(Number(0), [Number(1)], [Number(1), Number(0)])).evaluate(s)
-    Print(BinaryOperation(Conditional(Conditional(Number(0),
-                                                  [Number(1)],
-                                                  [Number(1), Number(0)]),
-                                      [Number(7)], [Number(8)]),
-                          '-', Number(0))).evaluate(s)
-    Print(BinaryOperation(Print(Read('uuu')), '*',
-                          FunctionCall(FunctionDefinition('foo', s['func']), [Number(0), Number(0)]))).evaluate(s)
-    Print(BinaryOperation(Number(1), '/', Number(2))).evaluate(s)
-    Print(BinaryOperation(FunctionCall(FunctionDefinition('0', s['0']), [Reference('tru'), Reference('flse')]),
-                          '&&',
-                          Number(1))).evaluate(s)
 
 
 if __name__ == '__main__':

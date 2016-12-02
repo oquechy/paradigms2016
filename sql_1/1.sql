@@ -1,4 +1,4 @@
 select Name
 from Country
-order by SurfaceArea desc, Name desc 
+order by SurfaceArea desc
 limit 5;

@@ -7,11 +7,13 @@
     для таких стран нужно вывести 0 (0,75 баллов).
 */
 
+
 select Country.Name, count(City.Name)
 from Country
-    left outer join (select * from City where City.Population >= 1000000) as City
-        on Country.Code = City.CountryCode
+    left outer join City  
+        on Country.Code = City.CountryCode and City.Population >= 1000000
 group by Country.Code
-order by count(City.Name) desc, Country.Name;  
+order by count(City.Name) desc
+;  
 
 

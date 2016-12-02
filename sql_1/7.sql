@@ -8,10 +8,10 @@
 
 */
 
-select Country.Name, sum(City.Population), Country.Population
+select Country.Name
 from Country
-left outer join City on Country.Code = City.CountryCode
+left outer join City on Country.Code = City.CountryCode 
 group by Country.Code
 having (count(City.Name) = 0 and Country.Population > 0) or (2 * sum(City.Population) < Country.Population) 
-order by Country.Name;
+;
 

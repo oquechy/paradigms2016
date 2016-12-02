@@ -3,8 +3,9 @@
   (0,25 баллов)
 */
 
-select GovernmentForm, max(Surface) from 
-    (select GovernmentForm, sum(SurfaceArea) as Surface
-    from Country
-    group by GovernmentForm);
+select GovernmentForm, sum(SurfaceArea)
+from Country
+group by GovernmentForm
+order by sum(SurfaceArea) desc
+limit 1;
 
