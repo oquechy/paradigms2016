@@ -11,8 +11,6 @@ class Scope(object):
             return self.dict[item]
         if self.parent:
             return self.parent[item]
-        else:
-            raise Exception
 
     def __setitem__(self, key, value):
         self.dict[key] = value
@@ -159,9 +157,9 @@ class FunctionCall:
 
 def test_fc():
     s = Scope()
-    s['foo'] = Function([], [Reference('foo')])
+    s['foo'] = Function(['r'], [Reference('foo')])
     f = FunctionDefinition('foo', s['foo'])
-    fc = FunctionCall(f, [])
+    fc = FunctionCall(f, [Number(0)])
     assert fc.evaluate(s) == s['foo']
 
 
@@ -187,8 +185,12 @@ class Conditional:
 def test_cond():
     s = Scope()
     n = Number(0)
-    c = Conditional(Number(0), [Number(1)], [Number(1), n])
-    assert c.evaluate(s) == n
+    c1 = Conditional(Number(0), [Number(1)], [Number(1), n])
+    assert c1.evaluate(s) == n
+    c2 = Conditional(Number(1), [Number(1), n], [Number(1)])
+    assert c2.evaluate(s) == n
+    c3 = Conditional(Number(0), [Number(1)], [])
+    assert c3.evaluate(s) is None
 
 
 class Print:
@@ -237,5 +239,3 @@ def test():
     #assert type(scope["bar"]) == Number
 
 
-if __name__ == '__main__':
-    test()
