@@ -7,4 +7,4 @@ python:
 install:
   - pip install -U pytest
 script:
-  - pytest testing_1/model.py 
+  - pytest testing_1/unit/model.py 
