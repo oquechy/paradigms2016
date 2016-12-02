@@ -5,6 +5,9 @@ language:
 python:
   - "3.4"
 install:
-  - pip install -U pytest
+  - pip install -r test_requirements.txt --use-mirrors
 script:
-  - pytest testing_1/unit/model.py 
+  - py.test testing_1/unit/model.py --pep8 testing_1/unit/model.py --cov testing_1/unit/model.py -v
+after_success:
+  - coveralls
+  
