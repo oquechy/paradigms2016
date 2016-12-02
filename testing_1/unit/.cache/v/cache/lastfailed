@@ -1,6 +1,3 @@
 {
-  "model.py::test_bo": true,
-  "model.py::test_cond": true,
-  "model.py::test_scope": true,
-  "model.py::test_uo": true
+  "model.py::test_cond": true
 }

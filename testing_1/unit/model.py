@@ -25,9 +25,9 @@ def test_scope():
     g = Function([], [Number(17)])
     p['snd'] = f
     s = Scope(p)
-    p['snd'] = g
+    s['snd'] = g
     assert s['snd'] != p['snd']
-    assert s['snd'] == n
+    assert s['snd'] is g
 
     
 
@@ -42,7 +42,7 @@ def test_nume():
     s = Scope()
     n1 = Number(17)
     assert n1.value == 17
-    assert n1.evaluate(s) == n1 
+    assert n1.evaluate(s) is n1 
 
 
 
@@ -58,7 +58,7 @@ def test_ref():
     n1 = Number(1)
     s['tru'] = n1
     r = Reference('tru')
-    assert r.evaluate(s) == n1
+    assert r.evaluate(s) is n1
 
 
 class UnaryOperation:
@@ -76,7 +76,7 @@ class UnaryOperation:
 def test_uo():
     s = Scope()
     uo = UnaryOperation("!", Number(5))
-    assert uo.evaluate(s) == 0
+    assert uo.evaluate(s).value == 0
     
     
 class BinaryOperation:
@@ -107,7 +107,7 @@ class BinaryOperation:
 def test_bo():
     s = Scope()
     bo = BinaryOperation(Number(0), '+', UnaryOperation('!', Number(0)))
-    assert bo.evaluate(s) == 1
+    assert bo.evaluate(s).value == 1
 
 
 class Function:
@@ -125,7 +125,7 @@ def test_foo():
     s = Scope()
     n = Number(17)
     f = Function([], [n])
-    assert f.evaluate(s) == n
+    assert f.evaluate(s) is n
 
 
 class FunctionDefinition:
