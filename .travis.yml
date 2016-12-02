@@ -7,7 +7,7 @@ python:
 install:
   - pip install -r test_requirements.txt --use-mirrors
 script:
-  - py.test testing_1/unit/model.py --pep8 testing_1/unit/model.py --cov testing_1/unit/model.py -v
+  - py.test testing_1/unit/model.py --cov testing_1/unit/model.py -v
 after_success:
   - coveralls
   
