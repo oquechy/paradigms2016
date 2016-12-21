@@ -53,7 +53,17 @@ class ConstantFolder:
 
 
 def my_tests():
-    p = model.Scope()
+    def test_trash_func():
+        scope = model.Scope()
+        model.FunctionDefinition('foo',
+                                 model.Function(['x'], [
+                                     model.FunctionDefinition('bar', model.Function([], [model.Read('l'),
+                                                                                         model.BinaryOperation(model.Reference('l'), '%',
+                                                                                                               model.Reference('x'))]))])).evaluate(scope)
+        model.Print(model.FunctionCall(model.FunctionCall(model.Reference('foo'), [model.Number(5)]), [])).evaluate(scope)
+
+    test_trash_func()
+    '''p = model.Scope()
     p['Number(0)'] = model.UnaryOperation('-', model.BinaryOperation(model.Number(10), '%', model.Number(3))).evaluate(p)
     p['func'] = model.Function(['mama', 'papa'], [model.Read('me'),
                                                   model.Conditional(model.BinaryOperation(model.BinaryOperation(model.Reference('mama'),
@@ -141,6 +151,7 @@ def my_tests():
     printerr.visit(fold.visit(func))
     printerr.visit(funcc)
     printerr.visit(fold.visit(funcc))
+    '''
 
 
 if __name__ == '__main__':
