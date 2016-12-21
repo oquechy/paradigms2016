@@ -4,7 +4,8 @@ from unittest.mock import patch
 from model import *
 
 
-class tScope(unittest.TestCase):
+class ScopeTest(unittest.TestCase):
+
 
     n = Number(100)
     f = BinaryOperation(Number(10), '%', Number(3))
@@ -36,7 +37,7 @@ class tScope(unittest.TestCase):
         self.assertIs(s['fst'], self.g)
 
 
-class tNumber(unittest.TestCase):
+class NumberTest(unittest.TestCase):
 
     s = Scope()
 
@@ -45,7 +46,7 @@ class tNumber(unittest.TestCase):
         self.assertIs(n.evaluate(self.s), n)
 
 
-class tFunction(unittest.TestCase):
+class FunctionTest(unittest.TestCase):
 
     s = Scope()
 
@@ -59,7 +60,7 @@ class tFunction(unittest.TestCase):
         f.evaluate(self.s)
 
 
-class tFunctionDefinition(unittest.TestCase):
+class FunctionDefinitionTest(unittest.TestCase):
 
     s = Scope()
 
@@ -71,7 +72,7 @@ class tFunctionDefinition(unittest.TestCase):
         self.assertIs(self.s['f'], f)
 
 
-class tConditional(unittest.TestCase):
+class ConditionalTest(unittest.TestCase):
 
     s = Scope()
     n, t, f = Number(17), Number(10), Number(0)
@@ -93,7 +94,7 @@ class tConditional(unittest.TestCase):
         c.evaluate(self.s)
 
 
-class tPrint(unittest.TestCase):
+class PrintTest(unittest.TestCase):
 
     s = Scope()
 
@@ -113,7 +114,7 @@ class tPrint(unittest.TestCase):
         self.assertEqual(out.getvalue(), '113311\n')
 
 
-class tRead(unittest.TestCase):
+class ReadTest(unittest.TestCase):
 
     s = Scope()
 
@@ -142,7 +143,7 @@ class tRead(unittest.TestCase):
         self.assertEqual(self.s['n'], r)
 
 
-class tReference(unittest.TestCase):
+class ReferenceTest(unittest.TestCase):
 
     s = Scope()
     x, y, z = Number(1), Number(2), Number(3)
@@ -155,7 +156,7 @@ class tReference(unittest.TestCase):
         self.assertIs(r3.evaluate(self.s), self.z)
 
 
-class tFunctionCall(unittest.TestCase):
+class FunctionCallTest(unittest.TestCase):
 
     s = Scope()
     n = Number(17)
@@ -179,34 +180,45 @@ class tFunctionCall(unittest.TestCase):
         FunctionCall(fd, []).evaluate(self.s)
 
 
-class tBinaryOperation(unittest.TestCase):
+class BinaryOperationTest(unittest.TestCase):
 
     s = Scope()
-    ops = {'+': operator.add, '-': operator.sub, '*': operator.mul, '/': operator.floordiv, '%': operator.mod,
-           '==': operator.eq, '!=': operator.ne, '<': operator.lt, '>': operator.gt, '<=': operator.le,
-           '>=': operator.ge, '&&':  lambda x, y: 1 if x and y else 0, '||': lambda x, y: 1 if x or y else 0}
+    nops = {'+': operator.add, '-': operator.sub, '*': operator.mul, '/': operator.floordiv, '%': operator.mod}
+    bops = {'==': operator.eq, '!=': operator.ne, '<': operator.lt, '>': operator.gt, '<=': operator.le,
+            '>=': operator.ge, '&&': lambda x, y: 1 if x and y else 0, '||': lambda x, y: 1 if x or y else 0}
 
     def test_1(self):
         for i in range(-10, 10):
             for j in range(-10, 10):
-                for ys, ps in self.ops.items():
+                for ys, ps in self.nops.items():
                     if j != 0 or ys != '/' and ys != '%':
                         with patch("sys.stdout", new_callable=StringIO) as out:
                             Print(BinaryOperation(Number(i), ys, Number(j)).evaluate(self.s)).evaluate(self.s)
-                            self.assertEqual(out.getvalue(), str(int(ps(i, j))) + '\n', str(i) + ' ' + ys + ' ' + str(j))
+                            self.assertEqual(out.getvalue(), str(ps(i, j)) + '\n', str(i) + ' ' + ys + ' ' + str(j))
 
+    def test_2(self):
+        for i in range(-10, 10):
+            for j in range(-10, 10):
+                for ys, ps in self.bops.items():
+                    with patch("sys.stdout", new_callable=StringIO) as out:
+                        Print(BinaryOperation(Number(i), ys, Number(j)).evaluate(self.s)).evaluate(self.s)
+                        r = int(ps(i, j))
+                        if r:
+                            self.assertTrue(int(out.getvalue()) != 0, str(i) + ' ' + ys + ' ' + str(j))
+                        else:
+                            self.assertEqual(out.getvalue(), '0\n', str(i) + ' ' + ys + ' ' + str(j))
 
 class UnaryOperationTest(unittest.TestCase):
 
     s = Scope()
-    ops = {'-': '-', '!': 'not '}
+    ops = {'-': operator.neg, '!': operator.not_}
 
     def test_1(self):
         for i in range(-10, 10):
             for ys, ps in self.ops.items():
                 with patch("sys.stdout", new_callable=StringIO) as out:
                     Print(UnaryOperation(ys, Number(i)).evaluate(self.s)).evaluate(self.s)
-                    self.assertEqual(out.getvalue(), str(eval('int(' + ps + str(i) + ')')) + '\n')
+                    self.assertEqual(out.getvalue(), str(int(ps(i))) + '\n')
 
 
 if __name__ == '__main__':
