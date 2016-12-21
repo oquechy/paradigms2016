@@ -15,19 +15,6 @@ class Scope(object):
     def __setitem__(self, key, value):
         self.dict[key] = value
 
-def test_scope():
-    p = Scope()
-    n = Number(100)
-    p['fst'] = n
-    f = BinaryOperation(Number(10), '%', Number(3))
-    g = Function([], [Number(17)])
-    p['snd'] = f
-    s = Scope(p)
-    s['snd'] = g
-    assert s['snd'] != p['snd']
-    assert s['snd'] is g
-
-    
 
 class Number:
     def __init__(self, value):
@@ -36,27 +23,12 @@ class Number:
     def evaluate(self, scope):
         return self
 
-def test_nume():
-    s = Scope()
-    n1 = Number(17)
-    assert n1.value == 17
-    assert n1.evaluate(s) is n1 
-
-
-
 class Reference:
     def __init__(self, name):
         self.name = name
 
     def evaluate(self, scope):
         return scope[self.name]
-
-def test_ref():
-    s = Scope()
-    n1 = Number(1)
-    s['tru'] = n1
-    r = Reference('tru')
-    assert r.evaluate(s) is n1
 
 
 class UnaryOperation:
@@ -71,11 +43,7 @@ class UnaryOperation:
         a = self.expr.evaluate(scope).value
         return Number(self.ops[self.op](a))
 
-def test_uo():
-    s = Scope()
-    uo = UnaryOperation("!", Number(5))
-    assert uo.evaluate(s).value == 0
-    
+
     
 class BinaryOperation:
     ops = {"+": operator.add,
@@ -103,11 +71,6 @@ class BinaryOperation:
         t = self.ops[self.op](l, r)
         return Number(t)
 
-def test_bo():
-    s = Scope()
-    bo = BinaryOperation(Number(0), '+', UnaryOperation('!', Number(0)))
-    assert bo.evaluate(s).value == 1
-
 
 class Function:
     def __init__(self, args, body):
@@ -120,11 +83,6 @@ class Function:
             last = x.evaluate(scope)
         return last
 
-def test_foo():
-    s = Scope()
-    n = Number(17)
-    f = Function([], [n])
-    assert f.evaluate(s) is n
 
 
 class FunctionDefinition:
@@ -136,11 +94,6 @@ class FunctionDefinition:
         scope[self.name] = self.func
         return self.func
 
-def test_food():
-    s = Scope()
-    s['foo'] = Function([], [Reference('foo')])
-    f = FunctionDefinition('foo', s['foo'])
-    assert f.evaluate(s) == s['foo']
 
 
 class FunctionCall:
@@ -155,13 +108,6 @@ class FunctionCall:
         for i, x in enumerate(func.args):
             call_scope[x] = results[i]
         return func.evaluate(call_scope)
-
-def test_fc():
-    s = Scope()
-    s['foo'] = Function(['r'], [Reference('foo')])
-    f = FunctionDefinition('foo', s['foo'])
-    fc = FunctionCall(f, [Number(0)])
-    assert fc.evaluate(s) == s['foo']
 
 
 class Conditional:
@@ -183,16 +129,6 @@ class Conditional:
             res = stmt.evaluate(scope)
         return res
 
-def test_cond():
-    s = Scope()
-    n = Number(0)
-    c1 = Conditional(Number(0), [Number(1)], [Number(1), n])
-    assert c1.evaluate(s) == n
-    c2 = Conditional(Number(1), [Number(1), n], [Number(1)])
-    assert c2.evaluate(s) == n
-    c3 = Conditional(Number(0), [Number(1)], [])
-    assert c3.evaluate(s) is None
-
 
 class Print:
     def __init__(self, expr):
@@ -203,11 +139,6 @@ class Print:
         print(a.value)
         return a
 
-def test_print():
-    s = Scope()
-    n = Number(0)
-    assert Print(n).evaluate(s) == n
-
 
 class Read:
     def __init__(self, name):
@@ -217,26 +148,4 @@ class Read:
         a = int(input())
         scope[self.name] = Number(a)
         return scope[self.name]
-
-def test_read():
-    r = Read('a')
-    r.evaluate = MagicMock(return_value=42)
-    s = Scope()
-    assert r.evaluate(s) == 42
-
-
-def test():
-    #Example
-    parent = Scope()
-    parent["bar"] = Number(10)
-    scope = Scope(parent)
-    parent["foo"] = Function(('hello', 'world'),
-                             [Print(BinaryOperation(Reference('hello'), '+', Reference('world')))])
-   # assert type(FunctionCall(FunctionDefinition('foo', parent['foo']),
-    #             [Number(5), UnaryOperation('-', Number(3))]).evaluate(scope)) == Number
-    assert scope["bar"].value == 10
-    scope["bar"] = Number(20)
-    assert scope["bar"].value == 20
-    #assert type(scope["bar"]) == Number
-
 
