@@ -11,7 +11,7 @@ class ScopeTest(unittest.TestCase):
     f = BinaryOperation(Number(10), '%', Number(3))
     g = Function([], [Number(17)])
 
-    def test_1(self):
+    def test_parent(self):
         p = Scope()
         s = Scope(p)
         p['fst'] = self.n
@@ -22,14 +22,14 @@ class ScopeTest(unittest.TestCase):
         self.assertIs(p['fst'], self.n)
         self.assertIs(p['snd'], self.f)
 
-    def test_2(self):
+    def test_simple(self):
         s = Scope()
         s['fst'] = self.n
         s['snd'] = self.g
         self.assertIs(s['snd'], self.g)
         self.assertIs(s['fst'], self.n)
 
-    def test_3(self):
+    def test_rewrite(self):
         s = Scope()
         s['fst'] = self.n
         self.assertIs(s['fst'], self.n)
@@ -41,7 +41,7 @@ class NumberTest(unittest.TestCase):
 
     s = Scope()
 
-    def test_1(self):
+    def test_return(self):
         n = Number(10)
         self.assertIs(n.evaluate(self.s), n)
 
@@ -208,18 +208,26 @@ class BinaryOperationTest(unittest.TestCase):
                         else:
                             self.assertEqual(out.getvalue(), '0\n', str(i) + ' ' + ys + ' ' + str(j))
 
+
 class UnaryOperationTest(unittest.TestCase):
 
     s = Scope()
-    ops = {'-': operator.neg, '!': operator.not_}
+#    ops = {'-': operator.neg, '!': operator.not_}
 
     def test_1(self):
         for i in range(-10, 10):
-            for ys, ps in self.ops.items():
-                with patch("sys.stdout", new_callable=StringIO) as out:
-                    Print(UnaryOperation(ys, Number(i)).evaluate(self.s)).evaluate(self.s)
-                    self.assertEqual(out.getvalue(), str(int(ps(i))) + '\n')
+            with patch("sys.stdout", new_callable=StringIO) as out:
+                Print(UnaryOperation('-', Number(i)).evaluate(self.s)).evaluate(self.s)
+                self.assertEqual(out.getvalue(), str(-i) + '\n')
 
+    def test_2(self):
+        for i in range(-10, 10):
+            with patch("sys.stdout", new_callable=StringIO) as out:
+                Print(UnaryOperation('!', Number(i)).evaluate(self.s)).evaluate(self.s)
+                if not i:
+                    self.assertTrue(int(out.getvalue()) != 0)
+                else:
+                    self.assertEqual(out.getvalue(), '0\n')
 
 if __name__ == '__main__':
     unittest.main()

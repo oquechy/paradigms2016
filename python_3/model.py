@@ -2,7 +2,7 @@
 
 
 from collections import defaultdict
-
+import operator
 
 class Scope:
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-
-from collections import defaultdict
 import operator
+from collections import defaultdict
+
 
 class Scope:
 
@@ -149,7 +149,7 @@ class UnaryOperation:
     def __init__(self, op, expr):
         self.op = op
         self.expr = expr
-        assert op in ['-', '!']
+        assert op in ['-', '+']
 
     def evaluate(self, scope):
         if self.op == '!':
