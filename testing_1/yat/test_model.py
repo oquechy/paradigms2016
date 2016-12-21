@@ -2,7 +2,7 @@ import unittest
 from io import StringIO
 from unittest.mock import patch
 from model import *
-
+import operator
 
 class ScopeTest(unittest.TestCase):
 
